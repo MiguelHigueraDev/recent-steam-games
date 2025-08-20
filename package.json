@@ -1,0 +1,19 @@
+{
+  "name": "recent-steam-games",
+  "version": "1.0.0",
+  "description": "Get a list of your recently played Steam games",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node --env-file-if-exists=.env dist/index.js"
+  },
+  "keywords": [
+    "steam"
+  ],
+  "author": "MiguelHigueraDev",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2"
+  }
+}

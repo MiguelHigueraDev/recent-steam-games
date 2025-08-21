@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { getRecentlyPlayedGames } from "../../../src/steam";
+import { envOrThrow } from "../../../src/utils";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED_ORIGIN = "https://miguelhiguera.dev";
+const ALLOWED_ORIGIN = envOrThrow("ALLOWED_ORIGIN");
+if (!ALLOWED_ORIGIN.startsWith("https://")) {
+  throw new Error("ALLOWED_ORIGIN must be a valid URL");
+}
+if (!URL.canParse(ALLOWED_ORIGIN)) {
+  throw new Error("ALLOWED_ORIGIN must be a valid URL");
+}
 
 function withCors(response: NextResponse) {
   response.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);

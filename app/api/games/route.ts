@@ -1,47 +1,44 @@
 import { NextResponse } from "next/server";
-import { getRecentlyPlayedGames } from "../../../src/steam";
 import { envOrThrow } from "../../../src/utils";
+import { getRecentlyPlayedGames } from "../../../src/steam";
 
-export const dynamic = "force-dynamic";
+const ALLOWED_ORIGINS = [
+  envOrThrow("ALLOWED_ORIGIN"),
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
 
-const ALLOWED_ORIGIN = envOrThrow("ALLOWED_ORIGIN");
-if (!ALLOWED_ORIGIN.startsWith("https://")) {
-  throw new Error("ALLOWED_ORIGIN must be a valid URL");
-}
-if (!URL.canParse(ALLOWED_ORIGIN)) {
-  throw new Error("ALLOWED_ORIGIN must be a valid URL");
-}
+function withCors(response: NextResponse, request: Request) {
+  const origin = request.headers.get("origin");
 
-function withCors(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    response.headers.set("Access-Control-Allow-Origin", origin);
+  }
+
   response.headers.set("Vary", "Origin");
   response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
   return response;
 }
 
-export async function OPTIONS() {
-  return withCors(
-    new NextResponse(null, {
-      status: 204,
-    })
-  );
+export async function OPTIONS(request: Request) {
+  return withCors(new NextResponse(null, { status: 204 }), request);
 }
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const countParam = searchParams.get("count");
-    const count = countParam ? Number(countParam) : undefined;
+    const count = Number(searchParams.get("count") ?? undefined);
 
     const data = await getRecentlyPlayedGames(count);
-    return withCors(NextResponse.json(data.response.games));
+    return withCors(NextResponse.json(data.response.games), request);
   } catch (error) {
     return withCors(
       NextResponse.json(
         { error: (error as Error).message ?? "Internal Server Error" },
         { status: 500 }
-      )
+      ),
+      request
     );
   }
 }
